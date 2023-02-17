@@ -4,9 +4,11 @@
 Python code to scrap emails from company websites using company names.
 
 
-## Authors
+## Usage
 
-- [@tvelingkar](https://github.com/tvelingkar)
+Execute below command to start scrapping for emails::
+
+   $ python email_scrapper.py
 
 
 ## Features
@@ -15,6 +17,11 @@ Python code to scrap emails from company websites using company names.
 - Company name input can be provided from csv file
 - Output generated in standar csv format
 - Good for finding privacy contacts
+
+
+## Authors
+
+- [@tvelingkar](https://github.com/tvelingkar)
 
 
 ## Tech Stack
