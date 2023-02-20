@@ -21,7 +21,7 @@ Execute below command to start scrapping for emails::
 
 ## Authors
 
-- [@tvelingkar](https://github.com/tvelingkar)
+- [Tushar Velingkar](https://github.com/tvelingkar)
 
 
 ## Tech Stack
