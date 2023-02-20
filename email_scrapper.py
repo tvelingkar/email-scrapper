@@ -63,7 +63,7 @@ def scrapEmails(input):
         print(("No results found!"+""))
         return {}
 
-google_search_client_list_csv_data = pd.read_csv('./input.csv')
+google_search_client_list_csv_data = pd.read_csv('./input.csv', on_bad_lines='warn')
 search_results = []
 chunk_size = 5
 
