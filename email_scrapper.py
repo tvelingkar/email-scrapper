@@ -81,13 +81,16 @@ def scrapEmails(input):
 
 chunks = generateChunks(google_search_client_list_csv_data, chunk_size)
 page_index = 0
+search_results = []
 for chunk in chunks:
     for index, row in chunk.iterrows():
         scrap_result = scrapEmails(row.get('Company Name'))
-        row['Comapany Url'] = scrap_result.get('url')
-        row['Comapany Contacts'] = scrap_result.get('emails')
+        row['Company Url'] = scrap_result.get('url')
+        row['Company Contacts'] = scrap_result.get('emails')
+        search_results.append(row.to_dict())
     page_index += 1
     print('Search for chunk ', page_index, ' completed, writing to csv file')
-    search_results_df = pd.DataFrame.from_dict(chunk)
+    search_results_df = pd.DataFrame.from_dict(search_results)
     search_results_df.to_csv (r'./output/output_chunk' + str(page_index) + '.csv', index = False, header=True)
+    search_results = []
 print('Email scrapping completed!!')
