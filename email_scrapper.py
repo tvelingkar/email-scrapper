@@ -5,10 +5,20 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
-import functools
+from googleapiclient.discovery import build
+from dotenv import load_dotenv
+import os
 
-s = requests.Session()
-s.request = functools.partial(s.request, timeout=30)
+load_dotenv()
+
+google_search_client_list_csv_data = pd.read_csv('./input.csv', on_bad_lines='warn')
+search_results = []
+chunk_size = 50
+
+def google_search(search_term, api_key, cse_id, **kwargs):
+    service = build("customsearch", "v1", developerKey=api_key)
+    res = service.cse().list(q=search_term, cx=cse_id, num=1, **kwargs).execute()
+    return res
 
 def findEmailsInText(text):
     return re.findall(r"[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z0-9\.\-+_]+", text, re.I)
@@ -17,14 +27,15 @@ def generateChunks(listToChunk, chunkSize):
     for i in range(0, len(listToChunk), chunkSize):
         yield listToChunk[i:i+chunkSize]
 
-def getURLFromText(input):
+def getURLFromText(term):
     try:
-        term = input
+        result = google_search(term, os.environ['GOOGLE_API_KEY'], os.environ['GOOGLE_CSE_ID'])
+        if len(result['items']) > 0:
+            return result['items'][0]['link']
         for url in search(term, num_results=1):
             return url
         return ''
-    except:
-        return ''
+    except Exception as ex: print(ex)
 
 def scrapEmails(input):
     emails = []
@@ -63,10 +74,6 @@ def scrapEmails(input):
         print(("No results found!"+""))
         return {}
 
-google_search_client_list_csv_data = pd.read_csv('./input.csv', on_bad_lines='warn')
-search_results = []
-chunk_size = 5
-
 chunks = generateChunks(google_search_client_list_csv_data, chunk_size)
 
 for chunk in chunks:
@@ -79,4 +86,4 @@ for chunk in chunks:
         })
     print('Search completed, writing to csv file')
     search_results_df = pd.DataFrame.from_dict(search_results)
-    search_results_df.to_csv (r'./output.csv', index = False, header=True)
+    search_results_df.to_csv (r'./output/output' + str(index) + '.csv', index = False, header=True)
