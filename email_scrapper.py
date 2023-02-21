@@ -14,7 +14,6 @@ from random import randint
 load_dotenv()
 
 google_search_client_list_csv_data = pd.read_csv('./input.csv', on_bad_lines='warn')
-search_results = []
 chunk_size = 10
 
 def google_search(search_term, api_key, cse_id, **kwargs):
@@ -38,6 +37,7 @@ def getURLFromText(term):
     except Exception as ex:
         print(ex)
         sleep(randint(25, 30))
+        print(term)
         for url in search(term, num_results=1):
             return url
 
@@ -46,8 +46,9 @@ def scrapEmails(input):
     privacy_links_to_check = 0
     other_links_to_check = 0
     try:
+        print('\nFinding emails for company:', input)
         result_web_url = getURLFromText(input)
-        print('\nFinding emails for ', result_web_url, 'using search text:', input, '\n')
+        print('\nCompany website found:', result_web_url, '\n')
         if result_web_url is not None and len(result_web_url) > 0:
             response = requests.get(result_web_url, timeout=5)
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -83,12 +84,10 @@ page_index = 0
 for chunk in chunks:
     for index, row in chunk.iterrows():
         scrap_result = scrapEmails(row.get('Company Name'))
-        search_results.append({
-            'COMPANY_NAME': row.get('Company Name'),
-            'URL': scrap_result.get('url'),
-            'CONTACT_EMAIL': scrap_result.get('emails')
-        })
+        row['Comapany Url'] = scrap_result.get('url')
+        row['Comapany Contacts'] = scrap_result.get('emails')
     page_index += 1
-    print('Search completed, writing to csv file')
-    search_results_df = pd.DataFrame.from_dict(search_results)
-    search_results_df.to_csv (r'./output/output' + str(page_index) + '.csv', index = False, header=True)
+    print('Search for chunk ', page_index, ' completed, writing to csv file')
+    search_results_df = pd.DataFrame.from_dict(chunk)
+    search_results_df.to_csv (r'./output/output_chunk' + str(page_index) + '.csv', index = False, header=True)
+print('Email scrapping completed!!')
