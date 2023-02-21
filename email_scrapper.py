@@ -8,12 +8,14 @@ import re
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
 import os
+from time import sleep
+from random import randint
 
 load_dotenv()
 
 google_search_client_list_csv_data = pd.read_csv('./input.csv', on_bad_lines='warn')
 search_results = []
-chunk_size = 50
+chunk_size = 10
 
 def google_search(search_term, api_key, cse_id, **kwargs):
     service = build("customsearch", "v1", developerKey=api_key)
@@ -32,10 +34,12 @@ def getURLFromText(term):
         result = google_search(term, os.environ['GOOGLE_API_KEY'], os.environ['GOOGLE_CSE_ID'])
         if len(result['items']) > 0:
             return result['items'][0]['link']
+        return ''
+    except Exception as ex:
+        print(ex)
+        sleep(randint(25, 30))
         for url in search(term, num_results=1):
             return url
-        return ''
-    except Exception as ex: print(ex)
 
 def scrapEmails(input):
     emails = []
@@ -75,7 +79,7 @@ def scrapEmails(input):
         return {}
 
 chunks = generateChunks(google_search_client_list_csv_data, chunk_size)
-
+page_index = 0
 for chunk in chunks:
     for index, row in chunk.iterrows():
         scrap_result = scrapEmails(row.get('Company Name'))
@@ -84,6 +88,7 @@ for chunk in chunks:
             'URL': scrap_result.get('url'),
             'CONTACT_EMAIL': scrap_result.get('emails')
         })
+    page_index += 1
     print('Search completed, writing to csv file')
     search_results_df = pd.DataFrame.from_dict(search_results)
-    search_results_df.to_csv (r'./output/output' + str(index) + '.csv', index = False, header=True)
+    search_results_df.to_csv (r'./output/output' + str(page_index) + '.csv', index = False, header=True)
