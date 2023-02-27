@@ -50,7 +50,7 @@ def scrapEmails(input):
         result_web_url = getURLFromText(input)
         print('\nCompany website found:', result_web_url, '\n')
         if result_web_url is not None and len(result_web_url) > 0:
-            response = requests.get(result_web_url, timeout=5)
+            response = requests.get(result_web_url, timeout=5, verify='http://' not in result_web_url)
             soup = BeautifulSoup(response.text, 'html.parser')
             emails.extend(x for x in findEmailsInText(response.text) if x not in emails)
 
@@ -60,11 +60,11 @@ def scrapEmails(input):
                     link = result_web_url + link
                 if link is not None and ('privacy' in link) and privacy_links_to_check <= 5:
                     privacy_links_to_check += 1
-                    page_response = requests.get(link, timeout=5)
+                    page_response = requests.get(link, timeout=5, verify='http://' not in link)
                     emails.extend(x for x in findEmailsInText(page_response.text) if x not in emails)
                 elif link is not None and ('privacy' in link or 'contact' in link or 'about' in link) and other_links_to_check <= 3:
                     other_links_to_check += 1
-                    page_response = requests.get(link)
+                    page_response = requests.get(link, timeout=10, verify='http://' not in link)
                     emails.extend(x for x in findEmailsInText(page_response.text) if x not in emails)
                 elif privacy_links_to_check == 5 and other_links_to_check == 3:
                     break
